@@ -1,4 +1,5 @@
 package com.mainsrc.ivoryscript;
+import com.mainsrc.ivoryscript.TokenType;
 
 class Token {
 	final TokenType type;
@@ -13,6 +14,7 @@ class Token {
 		this.line = line;
 	}
 
+	@Override
 	public String toString() {
 		return type + " " + lexeme + " " + literal; 
 	}
