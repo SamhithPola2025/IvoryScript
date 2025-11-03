@@ -27,6 +27,10 @@ public class IvoryScanner {
         keywords.put("true",   TRUE);
         keywords.put("var",    VAR);
         keywords.put("while",  WHILE);
+        keywords.put("choose", CHOOSE);
+        keywords.put("option", OPTION);
+        keywords.put("otherwise", OTHERWISE);
+        keywords.put("disrupt", DISRUPT);
     }
 
     private final String source;
@@ -62,6 +66,7 @@ public class IvoryScanner {
             case '+': addToken(PLUS); break;
             case ';': addToken(SEMICOLON); break;
             case '*': addToken(STAR); break;
+            case ':': addToken(COLON); break;
 
             case '!':
                 addToken(match('=') ? BANG_EQUAL : BANG);
@@ -104,9 +109,7 @@ public class IvoryScanner {
                 } else if (isAlpha(c)) {
                     identifier();
                 } else {
-                    // unexpected character - you can hook into your error handler
-                    // For now, we'll just ignore unknown characters (or call error)
-                    // error(line, "Unexpected character: " + c);
+                    IvoryScript.error(line, "Unexpected character: " + c);
                 }
                 break;
         }

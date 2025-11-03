@@ -28,6 +28,16 @@ class AstPrinter implements Expr.Visitor<String> {
     return parenthesize(expr.operator.lexeme, expr.right);
   }
 
+  @Override
+  public String visitVariableExpr(Expr.Variable expr) {
+    return expr.name.lexeme;
+  }
+
+  @Override
+  public String visitAssignExpr(Expr.Assign expr) {
+    return parenthesize("assign " + expr.name.lexeme, expr.value);
+  }
+
   private String parenthesize(String name, Expr... exprs) {
     StringBuilder builder = new StringBuilder();
 
@@ -40,7 +50,7 @@ class AstPrinter implements Expr.Visitor<String> {
     return builder.toString();
   }
   
-  //test method for now
+
   public static void main(String[] args) {
     Expr expression = new Expr.Binary(
         new Expr.Unary(

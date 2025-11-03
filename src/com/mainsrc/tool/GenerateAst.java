@@ -20,7 +20,23 @@ public class GenerateAst {
             "Binary   : Expr left, Token operator, Expr right",
             "Grouping : Expr expression",
             "Literal  : Object value",
-            "Unary    : Token operator, Expr right"
+            "Unary    : Token operator, Expr right",
+            "Variable : Token name",
+            "Assign   : Token name, Expr value"
+        ));
+
+        defineAst(outputDir, "Stmt", Arrays.asList(
+            "Expression : Expr expression",
+            "Print      : Expr expression",
+            "Var        : Token name, Expr initializer",
+            "Block      : List<Stmt> statements",
+            "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
+            "While      : Expr condition, Stmt body",
+            "For        : Stmt initializer, Expr condition, Expr increment, Stmt body",
+            "Break      : ",
+            "Switch     : Expr condition, List<Case> cases, Default defaultCase",
+            "Case       : Expr value, List<Stmt> body",
+            "Default    : List<Stmt> body"
         ));
     }
 
@@ -59,14 +75,14 @@ public class GenerateAst {
 
         writer.println("  static class " + className + " extends " + baseName + " {");
 
-        // Constructor
         writer.println("    " + className + "(" + fieldList + ") {");
 
-        // Assign fields
-        String[] fields = fieldList.split(", ");
-        for (String field : fields) {
-            String name = field.split(" ")[1];
-            writer.println("      this." + name + " = " + name + ";");
+        if (!fieldList.isEmpty()) {
+            String[] fields = fieldList.split(", ");
+            for (String field : fields) {
+                String name = field.split(" ")[1];
+                writer.println("      this." + name + " = " + name + ";");
+            }
         }
 
         writer.println("    }");
@@ -80,9 +96,11 @@ public class GenerateAst {
         writer.println("    }");
         writer.println();
 
-        // Field declarations
-        for (String field : fields) {
-            writer.println("    final " + field + ";");
+        if (!fieldList.isEmpty()) {
+            String[] fields = fieldList.split(", ");
+            for (String field : fields) {
+                writer.println("    final " + field + ";");
+            }
         }
 
         writer.println("  }");

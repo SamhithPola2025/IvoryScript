@@ -7,5 +7,9 @@ enum TokenType {
     GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
     IDENTIFIER, STRING, NUMBER,
     AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
-    PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE, EOF
+    PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE, EOF, COLON, 
+    CHOOSE, // switch case
+    OPTION, // optION
+    OTHERWISE, // default (stands for otherwise)
+    DISRUPT, //disrupt (this is just break) 
 }
