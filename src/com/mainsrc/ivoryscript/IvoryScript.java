@@ -11,6 +11,7 @@ import java.util.Scanner;
 
 public class IvoryScript {
 	static boolean hadError = false;
+	public static final Interpreter interpreter  = new Interpreter();
 	public static void main(String[] args) throws IOException {
 		if (args.length > 1) {
 			System.out.println("Usage: ivory [script]");
@@ -43,13 +44,18 @@ public class IvoryScript {
 			hadError = false;
 		}
 	}
-	private static void run(String source) {
-		IvoryScanner ivoryscanner = new IvoryScanner(source);
-		List<Token> tokens = ivoryscanner.scanTokens();
 
-		for (Token token : tokens) {
-			System.out.println(token);
-		}
+	private static void run(String source) {
+		IvoryScanner scanner = new IvoryScanner(source);
+		List<Token> tokens = scanner.scanTokens();
+
+		Parser parser = new Parser(tokens);
+		List<Stmt> statements = parser.parse();
+	
+		// Stop if there was a syntax error
+		if (hadError) return;
+
+		interpreter.interpret(statements);
 	}
 	static void error(int line, String message) {
 		report(line, "", message);

@@ -1,0 +1,19 @@
+var name = "ivoryscript";
+var version = 1.0;
+print "Welcome to " + name + " version " + version + "!";
+var x = 2;
+
+choose (x) {
+    option 1:
+        print "one";
+        disrupt;
+    option 2:
+        print "two";
+        disrupt;
+    otherwise:
+        print "default";
+}
+
+fun greet(name) { 
+    print "Hello";
+}

@@ -335,7 +335,7 @@ class Parser {
                 consume(COLON, "Expected ':' following option value.");
                 List<Stmt> body = new ArrayList<>();
                 while (!check(OPTION) && !check(OTHERWISE) && !check(RIGHT_BRACE) && !isAtEnd()) {
-                    System.out.println("Parsing statement inside option... Current token: " + peek().type);
+                   // System.out.println("Parsing statement inside option... Current token: " + peek().type);
                     if (match(DISRUPT)) {
                         consume(SEMICOLON, "Expected ';' after 'disrupt'.");
                         body.add(new Stmt.Break());
@@ -344,16 +344,16 @@ class Parser {
                     }
                 }
                 cases.add(new Stmt.Case(optionValue, body));
-                System.out.println("Finished parsing option.");
+              //  System.out.println("Finished parsing option.");
             } else if (match(OTHERWISE)) {
-                System.out.println("Parsing otherwise...");
+          //      System.out.println("Parsing otherwise...");
                 if (defaultCase != null) {
                     throw error(peek(), "Multiple 'otherwise' blocks are not allowed.");
                 }
                 consume(COLON, "Expected ':' after 'otherwise'.");
                 List<Stmt> body = new ArrayList<>();
                 while (!check(OPTION) && !check(RIGHT_BRACE) && !isAtEnd()) {
-                    System.out.println("Parsing statement inside otherwise... Current token: " + peek().type);
+          //          System.out.println("Parsing statement inside otherwise... Current token: " + peek().type);
                     if (match(DISRUPT)) {
                         consume(SEMICOLON, "Expected ';' after 'disrupt'.");
                         body.add(new Stmt.Break());
@@ -362,7 +362,7 @@ class Parser {
                     }
                 }
                 defaultCase = new Stmt.Default(body);
-                System.out.println("Finished parsing otherwise.");
+            //    System.out.println("Finished parsing otherwise.");
             } else {
                 System.out.println("Unexpected token: " + peek().type + " (" + peek().lexeme + ")");
                 throw error(peek(), "Expected 'option' or 'otherwise'.");
@@ -370,7 +370,7 @@ class Parser {
         }
 
         consume(RIGHT_BRACE, "Expected '}' after choose options.");
-        System.out.println("Finished parsing choose statement.");
+  //      System.out.println("Finished parsing choose statement.");
         return new Stmt.Switch(condition, cases, defaultCase);
     }
 
@@ -380,5 +380,19 @@ class Parser {
             statements.add(declaration());
         }
         return statements;
+    }
+
+    private Stmt function(String kind) {
+        Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
+        consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
+        List<Token> parameters = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (parameters.size() >= 255) {
+                    error(peek(), "Cannot have more than 255 parameters.");
+                }
+            } while (match(TokenType.COMMA));
+        }
+        consume(TokenType.)
     }
 }
