@@ -14,8 +14,9 @@ choose (x) {
         print "default";
 }
 
-fun greet(name, age) {
-    print "Hello, " + name + "! You are " + age + " years old.";
+fun add(a, b) {
+    return a + b;
 }
 
-greet("samhith", 13);
+var result = add(10, 20);
+print result;

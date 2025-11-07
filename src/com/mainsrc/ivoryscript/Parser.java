@@ -175,6 +175,7 @@ class Parser {
             consume(SEMICOLON, "Expected ';' after 'disrupt'.");
             return new Stmt.Break();
         }
+        if (match(RETURN)) return returnStatement(); 
         return expressionStatement();
     }
 
@@ -426,5 +427,17 @@ class Parser {
         consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
         List<Stmt> body = block();
         return new Stmt.Function(name, parameters, body);
+    }
+
+    private Stmt returnStatement() {
+        Token keyword = previous();
+        Expr value = null;
+
+        if (!check(TokenType.SEMICOLON)) {
+            value = expression();
+        }
+
+        consume(TokenType.SEMICOLON, "Expected ';' after return value.");
+        return new Stmt.Return(keyword, value);
     }
 }
