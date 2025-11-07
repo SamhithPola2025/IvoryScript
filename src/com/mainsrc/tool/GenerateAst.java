@@ -36,7 +36,8 @@ public class GenerateAst {
             "Break      : ",
             "Switch     : Expr condition, List<Case> cases, Default defaultCase",
             "Case       : Expr value, List<Stmt> body",
-            "Default    : List<Stmt> body"
+            "Default    : List<Stmt> body",
+            "Function   : Token name, List<Token> params, List<Stmt> body"
         ));
     }
 

@@ -49,8 +49,6 @@ class AstPrinter implements Expr.Visitor<String> {
     builder.append(")");
     return builder.toString();
   }
-  
-
   public static void main(String[] args) {
     Expr expression = new Expr.Binary(
         new Expr.Unary(
@@ -61,5 +59,10 @@ class AstPrinter implements Expr.Visitor<String> {
             new Expr.Literal(45.67)));
 
     System.out.println(new AstPrinter().print(expression));
+  }
+
+  @Override
+  public String visitCallExpr(Expr.Call expr) {
+    return parenthesize("call " + expr.callee.accept(this), expr.arguments.toArray(new Expr[0]));
   }
 }

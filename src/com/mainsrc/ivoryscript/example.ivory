@@ -14,6 +14,8 @@ choose (x) {
         print "default";
 }
 
-fun greet(name) { 
-    print "Hello";
+fun greet(name, age) {
+    print "Hello, " + name + "! You are " + age + " years old.";
 }
+
+greet("samhith", 13);
