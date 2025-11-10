@@ -107,7 +107,28 @@ class Parser {
             return new Expr.Unary(operator, right);
         }
 
-        return primary();
+        return call();
+    }
+
+    private Expr call() {
+        Expr expr = primary();
+
+        while (true) {
+            if (match(LEFT_PAREN)) {
+                expr = finishCall(expr);
+            } else if (match(DOT)) {
+                Token name = consume(IDENTIFIER, "Expect property name after '.'.");
+                expr = new Expr.Get(expr, name);
+            } else if (match(LEFT_BRACKET)) {
+                Expr index = expression();
+                Token bracket = consume(RIGHT_BRACKET, "Expect ']' after index.");
+                expr = new Expr.Index(expr, index, bracket);
+            } else {
+                break;
+            }
+        }
+
+        return expr;
     }
 
     private Expr primary() {
@@ -118,13 +139,19 @@ class Parser {
             return new Expr.Literal(previous().literal);
         }
     
+        if (match(SUPER)) {
+            Token keyword = previous();
+            consume(DOT, "Expect '.' after 'super'.");
+            Token method = consume(IDENTIFIER, "Expect superclass method name.");
+            return new Expr.Super(keyword, method);
+        }
+
+        if (match(THIS)) {
+            return new Expr.This(previous());
+        }
+    
         if (match(IDENTIFIER)) {
-            Expr expr = new Expr.Variable(previous());
-            // Check if this is a function call
-            while (match(LEFT_PAREN)) {
-                expr = finishCall(expr);
-            }
-            return expr;
+            return new Expr.Variable(previous());
         }
     
         if (match(LEFT_PAREN)) {
@@ -132,8 +159,43 @@ class Parser {
             consume(RIGHT_PAREN, "Expected ')' after expression!");
             return new Expr.Grouping(expr);
         }
+
+        if (match(LEFT_BRACKET)) {
+            return array();
+        }
+
+        if (match(LEFT_BRACE)) {
+            return dictionary();
+        }
     
         throw error(peek(), "Expected expression.");
+    }
+
+    private Expr array() {
+        List<Expr> elements = new ArrayList<>();
+        if (!check(RIGHT_BRACKET)) {
+            do {
+                elements.add(expression());
+            } while (match(COMMA));
+        }
+        consume(RIGHT_BRACKET, "Expect ']' after array elements.");
+        return new Expr.Array(elements);
+    }
+
+    private Expr dictionary() {
+        List<Expr> keys = new ArrayList<>();
+        List<Expr> values = new ArrayList<>();
+        if (!check(RIGHT_BRACE)) {
+            do {
+                Expr key = expression();
+                consume(COLON, "Expect ':' after dictionary key.");
+                Expr value = expression();
+                keys.add(key);
+                values.add(value);
+            } while (match(COMMA));
+        }
+        consume(RIGHT_BRACE, "Expect '}' after dictionary entries.");
+        return new Expr.Dictionary(keys, values);
     }
 
     private Expr finishCall(Expr callee) {
@@ -152,11 +214,9 @@ class Parser {
 
     private Token consume(TokenType type, String message) {
         if (check(type)) {
-            System.out.println("Found expected token: " + type);
             return advance();
         }
     
-        System.out.println("Error: Expected " + type + " but found " + peek().type);
         throw error(peek(), message);
     }
     private ParseError error(Token token, String message) {
@@ -186,11 +246,8 @@ class Parser {
     }
 
     private Stmt expressionStatement() {
-        System.out.println("Parsing expression statement...");
         Expr expr = expression();
-        System.out.println("Parsed expression: " + expr);
         consume(TokenType.SEMICOLON, "Expected ';' after value!");
-        System.out.println("Semicolon found after expression.");
         return new Stmt.Expression(expr);
     }
 
@@ -209,6 +266,7 @@ class Parser {
         try {
             if (match(FUN)) return function("function");
             if (match(VAR)) return varDeclaration();
+            if (match(CLASS)) return classDeclaration();
             return statement();
         } catch (ParseError error) {
             synchronize();
@@ -294,9 +352,7 @@ class Parser {
     }
 
     private Expr expression() {
-        Expr expr = assignment();
-        System.out.println("Parsed expression: " + expr);
-        return expr;
+        return assignment();
     }
 
     private Expr assignment() {
@@ -309,6 +365,12 @@ class Parser {
             if (expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable)expr).name;
                 return new Expr.Assign(name, value);
+            } else if (expr instanceof Expr.Get) {
+                Expr.Get get = (Expr.Get)expr;
+                return new Expr.Set(get.object, get.name, value);
+            } else if (expr instanceof Expr.Index) {
+                Expr.Index index = (Expr.Index)expr;
+                return new Expr.IndexAssign(index.object, index.index, value, index.bracket);
             }
 
             error(equals, "Invalid assignment target.");
@@ -342,10 +404,8 @@ class Parser {
     }
 
     private Stmt chooseStatement() {
-   //     System.out.println("Parsing choose statement...");
         consume(LEFT_PAREN, "Expected '(' after 'choose'.");
         Expr condition = expression();
-     //   System.out.println("Condition: " + condition);
         consume(RIGHT_PAREN, "Expected ')' after choose condition.");
         consume(LEFT_BRACE, "Expected '{' before choose options.");
 
@@ -353,18 +413,14 @@ class Parser {
         Stmt.Default defaultCase = null;
 
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
-     //       System.out.println("Current token: " + peek().type + " (" + peek().lexeme + ")");
             if (match(OPTION)) {
-             //   System.out.println("Parsing option...");
                 if (!check(NUMBER) && !check(STRING)) {
                     throw error(peek(), "Expected a value (e.g., number or string) after 'option'. Found: " + peek().type);
                 }
                 Expr optionValue = expression();
-        //        System.out.println("Option value: " + optionValue);
                 consume(COLON, "Expected ':' following option value.");
                 List<Stmt> body = new ArrayList<>();
                 while (!check(OPTION) && !check(OTHERWISE) && !check(RIGHT_BRACE) && !isAtEnd()) {
-                   // System.out.println("Parsing statement inside option... Current token: " + peek().type);
                     if (match(DISRUPT)) {
                         consume(SEMICOLON, "Expected ';' after 'disrupt'.");
                         body.add(new Stmt.Break());
@@ -373,16 +429,13 @@ class Parser {
                     }
                 }
                 cases.add(new Stmt.Case(optionValue, body));
-              //  System.out.println("Finished parsing option.");
             } else if (match(OTHERWISE)) {
-          //      System.out.println("Parsing otherwise...");
                 if (defaultCase != null) {
                     throw error(peek(), "Multiple 'otherwise' blocks are not allowed.");
                 }
                 consume(COLON, "Expected ':' after 'otherwise'.");
                 List<Stmt> body = new ArrayList<>();
                 while (!check(OPTION) && !check(RIGHT_BRACE) && !isAtEnd()) {
-          //          System.out.println("Parsing statement inside otherwise... Current token: " + peek().type);
                     if (match(DISRUPT)) {
                         consume(SEMICOLON, "Expected ';' after 'disrupt'.");
                         body.add(new Stmt.Break());
@@ -391,15 +444,12 @@ class Parser {
                     }
                 }
                 defaultCase = new Stmt.Default(body);
-            //    System.out.println("Finished parsing otherwise.");
             } else {
-                System.out.println("Unexpected token: " + peek().type + " (" + peek().lexeme + ")");
                 throw error(peek(), "Expected 'option' or 'otherwise'.");
             }
         }
 
         consume(RIGHT_BRACE, "Expected '}' after choose options.");
-  //      System.out.println("Finished parsing choose statement.");
         return new Stmt.Switch(condition, cases, defaultCase);
     }
 
@@ -411,7 +461,7 @@ class Parser {
         return statements;
     }
 
-    private Stmt function(String kind) {
+    private Stmt.Function function(String kind) {
         Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
         consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
         List<Token> parameters = new ArrayList<>();
@@ -439,5 +489,25 @@ class Parser {
 
         consume(TokenType.SEMICOLON, "Expected ';' after return value.");
         return new Stmt.Return(keyword, value);
+    }
+
+    private Stmt classDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
+    
+        Expr.Variable superclass = null;
+        if (match(TokenType.LESS)) {
+            consume(TokenType.IDENTIFIER, "Expect superclass name.");
+            superclass = new Expr.Variable(previous());
+        }
+    
+        consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            consume(TokenType.FUN, "Expect 'fun' keyword before method.");
+            methods.add(function("method"));
+        }
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+    
+        return new Stmt.Class(name, superclass, methods);
     }
 }

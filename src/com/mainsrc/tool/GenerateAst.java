@@ -62,7 +62,6 @@ public class GenerateAst {
                 defineType(writer, baseName, className, fields);
             }
 
-            // The base accept() method.
             writer.println();
             writer.println("  abstract <R> R accept(Visitor<R> visitor);");
 
@@ -89,7 +88,6 @@ public class GenerateAst {
         writer.println("    }");
         writer.println();
 
-        // Visitor pattern.
         writer.println("    @Override");
         writer.println("    <R> R accept(Visitor<R> visitor) {");
         writer.println("      return visitor.visit" +

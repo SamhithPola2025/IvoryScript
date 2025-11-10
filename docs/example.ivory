@@ -1,0 +1,113 @@
+/* 
+ * Comprehensive test file for IvoryScript
+ * Tests: comments, arrays, dictionaries, string methods, built-in functions
+ */
+
+// Single-line comment test
+var name = "ivoryscript";
+var version = 1.0;
+print "Welcome to " + name + " version " + version + "!";
+
+// Test arrays
+print "";
+print "=== ARRAYS ===";
+var arr = [1, 2, 3, 4, 5];
+print arr;
+print "Array length: " + arr.length;
+print "First element: " + arr[0];
+print "Last element: " + arr[4];
+
+arr[2] = 99;
+print "After setting arr[2] = 99: " + arr;
+
+// Test dictionaries
+print "";
+print "=== DICTIONARIES ===";
+var dict = {"name": "IvoryScript", "version": 1.0, "type": "language"};
+print dict;
+print "Dictionary length: " + dict.length;
+print "Name: " + dict["name"];
+print "Version: " + dict["version"];
+
+dict["newKey"] = "newValue";
+print "After adding newKey: " + dict;
+
+// Test string methods
+print "";
+print "=== STRING METHODS ===";
+var str = "Hello World";
+print "Original: " + str;
+print "Length: " + str.length();
+print "Substring(0, 5): " + str.substring(0, 5);
+print "ToUpper: " + str.toUpper();
+print "ToLower: " + str.toLower();
+
+// Test string indexing
+print "First character: " + str[0];
+print "Last character: " + str[10];
+
+// Test built-in functions
+print "";
+print "=== BUILT-IN FUNCTIONS ===";
+print "Type of 42: " + type(42);
+print "Type of 'hello': " + type("hello");
+print "Type of true: " + type(true);
+print "Type of arr: " + type(arr);
+print "Type of dict: " + type(dict);
+
+print "Length of 'hello': " + length("hello");
+print "Length of arr: " + length(arr);
+print "Length of dict: " + length(dict);
+
+print "toString(42): " + toString(42);
+print "toString(true): " + toString(true);
+
+// Test nested structures
+print "";
+print "=== NESTED STRUCTURES ===";
+var nested = {"array": [1, 2, 3], "dict": {"a": 1, "b": 2}};
+print nested;
+print "nested['array'][1]: " + nested["array"][1];
+print "nested['dict']['a']: " + nested["dict"]["a"];
+
+// Test with existing features
+print "";
+print "=== EXISTING FEATURES ===";
+var x = 2;
+choose (x) {
+    option 1:
+        print "one";
+        disrupt;
+    option 2:
+        print "two";
+        disrupt;
+    otherwise:
+        print "default";
+}
+
+fun add(a, b) {
+    return a + b;
+}
+
+var result = add(10, 20);
+print "add(10, 20) = " + result;
+
+class Animal {
+    fun speak() {
+        print "Animal sound";
+    }
+}
+
+class Dog < Animal {
+    fun speak() {
+        print "Woof!";
+    }
+
+    fun superSpeak() {
+        super.speak();
+    }
+}
+
+var dog = Dog();
+dog.speak();
+dog.superSpeak();

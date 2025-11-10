@@ -20,7 +20,6 @@ public class TestParser {
         IvoryScanner scanner = new IvoryScanner(source);
         List<Token> tokens = scanner.scanTokens();
 
-        // Print all tokens for debugging
         for (Token token : tokens) {
             System.out.println(token);
         }

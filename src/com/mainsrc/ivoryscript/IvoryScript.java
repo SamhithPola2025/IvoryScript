@@ -26,7 +26,6 @@ public class IvoryScript {
 		byte[] bytes = Files.readAllBytes(Paths.get(path));
 		run(new String(bytes, Charset.defaultCharset()));
 
-		//indicate an error in the exit code.
 		if (hadError) System.exit(65);
 
 	}
@@ -52,7 +51,6 @@ public class IvoryScript {
 		Parser parser = new Parser(tokens);
 		List<Stmt> statements = parser.parse();
 	
-		// Stop if there was a syntax error
 		if (hadError) return;
 
 		interpreter.interpret(statements);

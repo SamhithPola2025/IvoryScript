@@ -18,6 +18,7 @@ abstract class Stmt {
     R visitDefaultStmt(Default stmt);
     R visitFunctionStmt(Function stmt);
     R visitReturnStmt(Return stmt);
+    R visitClassStmt(Class stmt);
   }
 
   static class Expression extends Stmt {
@@ -212,4 +213,21 @@ abstract class Stmt {
   }
 
   abstract <R> R accept(Visitor<R> visitor);
+
+  static class Class extends Stmt {
+    final Token name; 
+    final Expr.Variable superclass;
+    final List<Stmt.Function> methods;
+
+    Class(Token name, Expr.Variable superclass, List<Stmt.Function> methods) {
+        this.name = name;
+        this.superclass = superclass; 
+        this.methods = methods;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+        return visitor.visitClassStmt(this);
+    }
+  }
 }

@@ -60,6 +60,8 @@ public class IvoryScanner {
             case ')': addToken(RIGHT_PAREN); break;
             case '{': addToken(LEFT_BRACE); break;
             case '}': addToken(RIGHT_BRACE); break;
+            case '[': addToken(LEFT_BRACKET); break;
+            case ']': addToken(RIGHT_BRACKET); break;
             case ',': addToken(COMMA); break;
             case '.': addToken(DOT); break;
             case '-': addToken(MINUS); break;
@@ -82,8 +84,17 @@ public class IvoryScanner {
                 break;
             case '/':
                 if (match('/')) {
-                    // comment till end of line
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    while (!isAtEnd()) {
+                        if (peek() == '\n') line++;
+                        if (peek() == '*' && peekNext() == '/') {
+                            advance();
+                            advance();
+                            break;
+                        }
+                        advance();
+                    }
                 } else {
                     addToken(SLASH);
                 }
@@ -92,7 +103,6 @@ public class IvoryScanner {
             case ' ':
             case '\r':
             case '\t':
-                // ignore whitespace
                 break;
 
             case '\n':
@@ -156,15 +166,11 @@ public class IvoryScanner {
         }
 
         if (isAtEnd()) {
-            // Unterminated string - call your error handler if desired
-            // error(line, "Unterminated string.");
             return;
         }
 
-        // consume the closing "
         advance();
 
-        // trim the surrounding quotes
         String value = source.substring(start + 1, current - 1);
         addToken(STRING, value);
     }
@@ -172,9 +178,8 @@ public class IvoryScanner {
     private void number() {
         while (isDigit(peek())) advance();
 
-        // fractional part
         if (peek() == '.' && isDigit(peekNext())) {
-            advance(); // consume the '.'
+            advance();
             while (isDigit(peek())) advance();
         }
 

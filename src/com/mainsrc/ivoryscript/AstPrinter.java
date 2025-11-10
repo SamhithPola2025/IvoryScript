@@ -65,4 +65,58 @@ class AstPrinter implements Expr.Visitor<String> {
   public String visitCallExpr(Expr.Call expr) {
     return parenthesize("call " + expr.callee.accept(this), expr.arguments.toArray(new Expr[0]));
   }
+
+  @Override
+  public String visitGetExpr(Expr.Get expr) {
+    return parenthesize("get " + expr.name.lexeme, expr.object);
+  }
+
+  @Override
+  public String visitSetExpr(Expr.Set expr) {
+    return parenthesize("set " + expr.name.lexeme, expr.object, expr.value);
+  }
+
+  @Override
+  public String visitSuperExpr(Expr.Super expr) {
+    return parenthesize("super." + expr.method.lexeme);
+  }
+
+  @Override
+  public String visitThisExpr(Expr.This expr) {
+    return "this";
+  }
+
+  @Override
+  public String visitArrayExpr(Expr.Array expr) {
+    StringBuilder sb = new StringBuilder("[");
+    for (int i = 0; i < expr.elements.size(); i++) {
+      if (i > 0) sb.append(", ");
+      sb.append(expr.elements.get(i).accept(this));
+    }
+    sb.append("]");
+    return sb.toString();
+  }
+
+  @Override
+  public String visitDictionaryExpr(Expr.Dictionary expr) {
+    StringBuilder sb = new StringBuilder("{");
+    for (int i = 0; i < expr.keys.size(); i++) {
+      if (i > 0) sb.append(", ");
+      sb.append(expr.keys.get(i).accept(this));
+      sb.append(": ");
+      sb.append(expr.values.get(i).accept(this));
+    }
+    sb.append("}");
+    return sb.toString();
+  }
+
+  @Override
+  public String visitIndexExpr(Expr.Index expr) {
+    return parenthesize("index", expr.object, expr.index);
+  }
+
+  @Override
+  public String visitIndexAssignExpr(Expr.IndexAssign expr) {
+    return parenthesize("indexAssign", expr.object, expr.index, expr.value);
+  }
 }

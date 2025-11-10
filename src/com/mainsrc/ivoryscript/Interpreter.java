@@ -1,7 +1,11 @@
 package com.mainsrc.ivoryscript;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
@@ -31,7 +35,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 if (stmt.increment != null) evaluate(stmt.increment);
             }
         } catch (BreakException e) {
-            // break stops the loop
         }
 
         return null;
@@ -39,13 +42,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     
     @Override
     public Void visitCaseStmt(Stmt.Case stmt) {
-        // handled in switch
         return null;
     }
     
     @Override
     public Void visitDefaultStmt(Stmt.Default stmt) {
-        // handled in switch
         return null;
     }
     
@@ -66,13 +67,57 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 executeStmtBody(stmt.defaultCase.body);
             }
         } catch (BreakException e) {
-            // break stops execution of switch
         }
 
         return null;
     }
 
     public Environment environment = new Environment();
+
+    public Interpreter() {
+        defineGlobals();
+    }
+
+    private void defineGlobals() {
+        environment.define("input", new IvoryScriptNativeFunction(0, args -> {
+            try {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+                return reader.readLine();
+            } catch (Exception e) {
+                throw new RuntimeError(null, "Error reading input: " + e.getMessage());
+            }
+        }));
+
+        environment.define("length", new IvoryScriptNativeFunction(1, args -> {
+            Object value = args.get(0);
+            if (value instanceof String) {
+                return (double) ((String) value).length();
+            } else if (value instanceof IvoryScriptArray) {
+                return (double) ((IvoryScriptArray) value).length();
+            } else if (value instanceof IvoryScriptDictionary) {
+                return (double) ((IvoryScriptDictionary) value).getEntries().size();
+            }
+            throw new RuntimeError(null, "length() can only be called on strings, arrays, or dictionaries.");
+        }));
+
+        environment.define("type", new IvoryScriptNativeFunction(1, args -> {
+            Object value = args.get(0);
+            if (value == null) return "nil";
+            if (value instanceof Double) return "number";
+            if (value instanceof String) return "string";
+            if (value instanceof Boolean) return "boolean";
+            if (value instanceof IvoryScriptArray) return "array";
+            if (value instanceof IvoryScriptDictionary) return "dictionary";
+            if (value instanceof IvoryScriptFunction) return "function";
+            if (value instanceof IvoryScriptClass) return "class";
+            if (value instanceof IvoryScriptInstance) return "instance";
+            return "unknown";
+        }));
+
+        environment.define("toString", new IvoryScriptNativeFunction(1, args -> {
+            return stringify(args.get(0));
+        }));
+    }
 
     @Override
     public Object visitLiteralExpr(Expr.Literal expr) {
@@ -162,7 +207,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     private void executeStmtBody(Object body) {
-        // handle single statement or block
         if (body instanceof Stmt) {
             execute((Stmt) body);
         } else if (body instanceof List) {
@@ -179,7 +223,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
-    private String stringify(Object object) {
+    static String stringify(Object object) {
         if (object == null) return "nil";
 
         if (object instanceof Double) {
@@ -234,7 +278,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 execute(stmt.body);
             }
         } catch (BreakException e) {
-            // break exits while
         }
         return null;
     }
@@ -302,5 +345,182 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             value = evaluate(stmt.value);
         }
         throw new Return(value);
+    }
+
+    @Override
+    public Void visitClassStmt(Stmt.Class stmt) {
+        Object superclass = null;
+        if (stmt.superclass != null) {
+            superclass = evaluate(stmt.superclass);
+            if (!(superclass instanceof IvoryScriptClass)) {
+                throw new RuntimeError(stmt.superclass.name, "Superclass must be a class.");
+            }
+        }
+    
+        environment.define(stmt.name.lexeme, null);
+    
+        Environment previous = this.environment;
+        Environment methodEnvironment = new Environment(environment);
+        if (stmt.superclass != null) {
+            methodEnvironment.define("super", superclass);
+        }
+        this.environment = methodEnvironment;
+    
+        Map<String, IvoryScriptFunction> methods = new HashMap<>();
+        for (Stmt.Function method : stmt.methods) {
+            IvoryScriptFunction function = new IvoryScriptFunction(method, methodEnvironment);
+            methods.put(method.name.lexeme, function);
+        }
+    
+        this.environment = previous;
+    
+        IvoryScriptClass klass = new IvoryScriptClass(stmt.name.lexeme, (IvoryScriptClass) superclass, methods);
+        environment.assign(stmt.name, klass);
+    
+        return null;
+    }
+
+    @Override
+    public Object visitGetExpr(Expr.Get expr) {
+        Object object = evaluate(expr.object);
+        if (object instanceof IvoryScriptInstance) {
+            return ((IvoryScriptInstance) object).get(expr.name);
+        }
+        if (object instanceof String) {
+            IvoryScriptString str = new IvoryScriptString((String) object);
+            Object property = str.getProperty(expr.name.lexeme);
+            if (property != null) {
+                return property;
+            }
+            throw new RuntimeError(expr.name, "String has no property '" + expr.name.lexeme + "'.");
+        }
+        if (object instanceof IvoryScriptArray && expr.name.lexeme.equals("length")) {
+            return (double) ((IvoryScriptArray) object).length();
+        }
+        if (object instanceof IvoryScriptDictionary && expr.name.lexeme.equals("length")) {
+            return (double) ((IvoryScriptDictionary) object).getEntries().size();
+        }
+        throw new RuntimeError(expr.name, "Only instances, strings, arrays, and dictionaries have properties.");
+    }
+
+    @Override
+    public Object visitSetExpr(Expr.Set expr) {
+        Object object = evaluate(expr.object);
+        if (!(object instanceof IvoryScriptInstance)) {
+            throw new RuntimeError(expr.name, "Only instances have fields.");
+        }
+        Object value = evaluate(expr.value);
+        ((IvoryScriptInstance) object).set(expr.name, value);
+        return value;
+    }
+
+    @Override
+    public Object visitSuperExpr(Expr.Super expr) {
+        Token superToken = new Token(TokenType.SUPER, "super", null, expr.keyword.line);
+        Object superclassObj = environment.get(superToken);
+        if (!(superclassObj instanceof IvoryScriptClass)) {
+            throw new RuntimeError(expr.keyword, "Can't use 'super' outside of a class.");
+        }
+        IvoryScriptClass superclass = (IvoryScriptClass) superclassObj;
+        
+        Token thisToken = new Token(TokenType.THIS, "this", null, expr.keyword.line);
+        Object thisObj = environment.get(thisToken);
+        if (!(thisObj instanceof IvoryScriptInstance)) {
+            throw new RuntimeError(expr.keyword, "Can't use 'super' outside of an instance method.");
+        }
+        IvoryScriptInstance object = (IvoryScriptInstance) thisObj;
+        
+        IvoryScriptFunction method = superclass.findMethod(expr.method.lexeme);
+        if (method == null) {
+            throw new RuntimeError(expr.method, "Undefined property '" + expr.method.lexeme + "'.");
+        }
+        return method.bind(object);
+    }
+
+    @Override
+    public Object visitThisExpr(Expr.This expr) {
+        return environment.get(expr.keyword);
+    }
+
+    @Override
+    public Object visitArrayExpr(Expr.Array expr) {
+        List<Object> elements = new ArrayList<>();
+        for (Expr element : expr.elements) {
+            elements.add(evaluate(element));
+        }
+        return new IvoryScriptArray(elements);
+    }
+
+    @Override
+    public Object visitDictionaryExpr(Expr.Dictionary expr) {
+        IvoryScriptDictionary dict = new IvoryScriptDictionary();
+        for (int i = 0; i < expr.keys.size(); i++) {
+            Object key = evaluate(expr.keys.get(i));
+            if (!(key instanceof String)) {
+                throw new RuntimeError(null, "Dictionary keys must be strings.");
+            }
+            Object value = evaluate(expr.values.get(i));
+            dict.set((String) key, value);
+        }
+        return dict;
+    }
+
+    @Override
+    public Object visitIndexExpr(Expr.Index expr) {
+        Object object = evaluate(expr.object);
+        Object index = evaluate(expr.index);
+
+        if (object instanceof IvoryScriptArray) {
+            if (!(index instanceof Double)) {
+                throw new RuntimeError(expr.bracket, "Array index must be a number.");
+            }
+            int idx = ((Double) index).intValue();
+            return ((IvoryScriptArray) object).get(idx);
+        } else if (object instanceof IvoryScriptDictionary) {
+            if (!(index instanceof String)) {
+                throw new RuntimeError(expr.bracket, "Dictionary key must be a string.");
+            }
+            Object value = ((IvoryScriptDictionary) object).get((String) index);
+            if (value == null) {
+                throw new RuntimeError(expr.bracket, "Key '" + index + "' not found in dictionary.");
+            }
+            return value;
+        } else if (object instanceof String) {
+            if (!(index instanceof Double)) {
+                throw new RuntimeError(expr.bracket, "String index must be a number.");
+            }
+            int idx = ((Double) index).intValue();
+            String str = (String) object;
+            if (idx < 0 || idx >= str.length()) {
+                throw new RuntimeError(expr.bracket, "String index out of bounds.");
+            }
+            return String.valueOf(str.charAt(idx));
+        }
+
+        throw new RuntimeError(expr.bracket, "Can only index arrays, dictionaries, and strings.");
+    }
+
+    @Override
+    public Object visitIndexAssignExpr(Expr.IndexAssign expr) {
+        Object object = evaluate(expr.object);
+        Object index = evaluate(expr.index);
+        Object value = evaluate(expr.value);
+
+        if (object instanceof IvoryScriptArray) {
+            if (!(index instanceof Double)) {
+                throw new RuntimeError(expr.bracket, "Array index must be a number.");
+            }
+            int idx = ((Double) index).intValue();
+            ((IvoryScriptArray) object).set(idx, value);
+            return value;
+        } else if (object instanceof IvoryScriptDictionary) {
+            if (!(index instanceof String)) {
+                throw new RuntimeError(expr.bracket, "Dictionary key must be a string.");
+            }
+            ((IvoryScriptDictionary) object).set((String) index, value);
+            return value;
+        }
+
+        throw new RuntimeError(expr.bracket, "Can only assign to array or dictionary indices.");
     }
 }
