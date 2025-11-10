@@ -241,6 +241,13 @@ dog.superSpeak();   // prints "Some sound"
 
 Inside methods, `this` refers to the current instance. `super` lets you call parent class methods.
 
+**Important notes about inheritance:**
+- A class can only inherit from one superclass
+- Methods in the subclass override methods in the superclass with the same name
+- You can access overridden methods using `super.methodName()`
+- If a method doesn't exist in the subclass, it looks in the superclass automatically
+- `super` can only be used inside class methods, not at the top level
+
 ## Strings
 
 Strings have some built-in methods:

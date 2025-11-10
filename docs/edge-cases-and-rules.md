@@ -129,6 +129,66 @@ super.speak();  // Error if not in a class method
 
 If you try to use `this` outside a method, you'll get an "Undefined variable" error.
 
+## Inheritance and Superclasses
+
+### Superclass Rules
+- A class can only inherit from one superclass (single inheritance)
+- The superclass must be defined before the subclass tries to inherit from it
+- If you try to inherit from a non-existent class, you'll get an error
+
+```ivory
+class Dog < Animal { }  // Error if Animal doesn't exist
+```
+
+### Method Resolution
+When you call a method on an instance:
+1. First, it looks in the instance's own class
+2. If not found, it looks in the superclass
+3. If not found there, it looks in the superclass's superclass, and so on
+4. If still not found, you get an "Undefined property" error
+
+```ivory
+class Animal {
+    fun speak() { print "Animal"; }
+}
+
+class Dog < Animal {
+    fun bark() { print "Woof"; }
+}
+
+var dog = Dog();
+dog.speak();  // Works - found in Animal
+dog.bark();   // Works - found in Dog
+dog.meow();   // Error - not found anywhere
+```
+
+### Method Overriding
+When a subclass defines a method with the same name as the superclass, the subclass method takes precedence:
+
+```ivory
+class Animal {
+    fun speak() { print "Animal sound"; }
+}
+
+class Dog < Animal {
+    fun speak() { print "Woof!"; }
+}
+
+var dog = Dog();
+dog.speak();  // Prints "Woof!" (Dog's version, not Animal's)
+```
+
+To call the superclass version, use `super`:
+
+```ivory
+class Dog < Animal {
+    fun speak() {
+        print "Woof!";
+        super.speak();  // Calls Animal's speak()
+    }
+}
+```
+
 ## Truthiness
 
 The following are **falsy**:

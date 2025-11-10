@@ -356,7 +356,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 throw new RuntimeError(stmt.superclass.name, "Superclass must be a class.");
             }
         }
-    
+
         environment.define(stmt.name.lexeme, null);
     
         Environment previous = this.environment;

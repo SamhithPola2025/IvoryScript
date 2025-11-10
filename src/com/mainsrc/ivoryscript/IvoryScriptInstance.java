@@ -15,12 +15,12 @@ public class IvoryScriptInstance {
         if (fields.containsKey(name.lexeme)) {
             return fields.get(name.lexeme);
         }
-
+    
         IvoryScriptFunction method = klass.findMethod(name.lexeme);
         if (method != null) {
             return method.bind(this);
         }
-
+    
         throw new Interpreter.RuntimeError(name, "Undefined property '" + name.lexeme + "'.");
     }
 

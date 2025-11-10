@@ -132,43 +132,42 @@ class Parser {
     }
 
     private Expr primary() {
-        if (match(FALSE)) return new Expr.Literal(false);
-        if (match(TRUE)) return new Expr.Literal(true);
-        if (match(NIL)) return new Expr.Literal(null);
-        if (match(NUMBER, STRING)) {
+        if (match(TokenType.FALSE)) return new Expr.Literal(false);
+        if (match(TokenType.TRUE)) return new Expr.Literal(true);
+        if (match(TokenType.NIL)) return new Expr.Literal(null);
+    
+        if (match(TokenType.NUMBER, TokenType.STRING)) {
             return new Expr.Literal(previous().literal);
         }
     
-        if (match(SUPER)) {
+        if (match(TokenType.SUPER)) {
             Token keyword = previous();
             consume(DOT, "Expect '.' after 'super'.");
             Token method = consume(IDENTIFIER, "Expect superclass method name.");
             return new Expr.Super(keyword, method);
         }
 
-        if (match(THIS)) {
-            return new Expr.This(previous());
-        }
+        if (match(TokenType.THIS)) return new Expr.This(previous());
     
-        if (match(IDENTIFIER)) {
+        if (match(TokenType.IDENTIFIER)) {
             return new Expr.Variable(previous());
         }
     
-        if (match(LEFT_PAREN)) {
+        if (match(TokenType.LEFT_PAREN)) {
             Expr expr = expression();
-            consume(RIGHT_PAREN, "Expected ')' after expression!");
+            consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
         }
 
-        if (match(LEFT_BRACKET)) {
+        if (match(TokenType.LEFT_BRACKET)) {
             return array();
         }
 
-        if (match(LEFT_BRACE)) {
+        if (match(TokenType.LEFT_BRACE)) {
             return dictionary();
         }
     
-        throw error(peek(), "Expected expression.");
+        throw error(peek(), "Expect expression.");
     }
 
     private Expr array() {
@@ -474,6 +473,7 @@ class Parser {
             } while (match(TokenType.COMMA));
         }
         consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+    
         consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
         List<Stmt> body = block();
         return new Stmt.Function(name, parameters, body);

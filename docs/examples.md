@@ -243,6 +243,35 @@ car.start();
 // Vehicle starting
 ```
 
+### Method Overriding and Inheritance
+
+```ivory
+class Shape {
+    fun area() {
+        return 0;
+    }
+    
+    fun describe() {
+        print "I am a shape";
+    }
+}
+
+class Rectangle < Shape {
+    fun init(w, h) {
+        this.width = w;
+        this.height = h;
+    }
+    
+    fun area() {
+        return this.width * this.height;
+    }
+}
+
+var rect = Rectangle(5, 10);
+print rect.area();        // 50 (uses Rectangle's area)
+rect.describe();          // "I am a shape" (uses Shape's describe, not overridden)
+```
+
 ## String Methods
 
 ```ivory

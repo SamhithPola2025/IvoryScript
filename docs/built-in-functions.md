@@ -121,7 +121,38 @@ toString({"a": 1})    // "{\"a\": 1}"
 - Arrays and dictionaries are formatted in their literal syntax
 - This is the same conversion that happens when you use `+` for string concatenation
 
+## super.method()
+
+Calls a method from the superclass of the current class.
+
+**Usage:**  
+The `super` keyword is used to call a method from the superclass of the current class. This is useful when a subclass overrides a method but still needs to call the implementation from the superclass.
+
+**Arity:** Depends on the method being called.
+
+**Example:**
+```ivory
+class Animal {
+    fun speak() {
+        print "Animal sound";
+    }
+}
+
+class Dog < Animal {
+    fun speak() {
+        print "Woof!";
+        super.speak();  // Calls the `speak` method from Animal
+    }
+}
+
+var dog = Dog();
+dog.speak();
+// Output:
+// Woof!
+// Animal sound
+```
+
 ## That's All
 
-There are only four built-in functions. The language keeps things simple. If you need more functionality, you can always write your own functions or use string/array methods.
+There are only a few built-in functions. The language keeps things simple. If you need more functionality, you can always write your own functions or use string/array methods.
 

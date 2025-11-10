@@ -14,10 +14,6 @@ class IvoryScriptClass implements IvoryScriptCallable {
         this.methods = methods;
     }
 
-    public Map<String, IvoryScriptFunction> getMethods() {
-        return methods;
-    }
-
     public IvoryScriptFunction findMethod(String name) {
         if (methods.containsKey(name)) {
             return methods.get(name);
@@ -34,7 +30,7 @@ class IvoryScriptClass implements IvoryScriptCallable {
     public Object call(Interpreter interpreter, List<Object> arguments) {
         IvoryScriptInstance instance = new IvoryScriptInstance(this);
 
-        IvoryScriptFunction initializer = methods.get("init");
+        IvoryScriptFunction initializer = findMethod("init");
         if (initializer != null) {
             initializer.bind(instance).call(interpreter, arguments);
         }
@@ -44,7 +40,7 @@ class IvoryScriptClass implements IvoryScriptCallable {
 
     @Override
     public int arity() {
-        IvoryScriptFunction initializer = methods.get("init");
+        IvoryScriptFunction initializer = findMethod("init");
         return initializer == null ? 0 : initializer.arity();
     }
 

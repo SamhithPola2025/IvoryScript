@@ -229,5 +229,5 @@ abstract class Stmt {
     <R> R accept(Visitor<R> visitor) {
         return visitor.visitClassStmt(this);
     }
-  }
+}
 }
