@@ -88,6 +88,23 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             }
         }));
 
+        environment.define("clock", new IvoryScriptCallable() {
+            @Override
+            public int arity() {
+                return 0;
+            }
+    
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return (double) System.currentTimeMillis();
+            }
+    
+            @Override
+            public String toString() {
+                return "<native fn>";
+            }
+        });
+
         environment.define("length", new IvoryScriptNativeFunction(1, args -> {
             Object value = args.get(0);
             if (value instanceof String) {
@@ -186,6 +203,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 return !isEqual(left, right);
             case EQUAL_EQUAL:
                 return isEqual(left, right);
+            case GREATER:
+                checkNumberOperands(expr.operator, left, right);
+                return (double) left > (double) right;
+            case GREATER_EQUAL:
+                checkNumberOperands(expr.operator, left, right);
+                return (double) left >= (double) right;
+            case LESS:
+                checkNumberOperands(expr.operator, left, right);
+                return (double) left < (double) right;
+            case LESS_EQUAL:
+                checkNumberOperands(expr.operator, left, right);
+                return (double) left <= (double) right;
             default:
                 throw new RuntimeError(expr.operator, "Unknown binary operator.");
         }
@@ -333,7 +362,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
-        IvoryScriptFunction function = new IvoryScriptFunction(stmt);
+        IvoryScriptFunction function = new IvoryScriptFunction(stmt, environment);
         environment.define(stmt.name.lexeme, function);
         return null;
     }

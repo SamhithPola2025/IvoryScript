@@ -1,0 +1,18 @@
+fun fib(n) {
+  if (n < 2) {
+    return n;
+  }
+  var a = 0;
+  var b = 1;
+  for (var i = 2; i <= n; i = i + 1) {
+    var temp = a + b;
+    a = b;
+    b = temp;
+  }
+  return b;
+}
+
+var before = clock();
+print fib(40);
+var after = clock();
+print after - before;
