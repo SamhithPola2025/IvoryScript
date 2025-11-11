@@ -1,3 +1,6 @@
+// this is a test to see the speed with complex arithmetic operations such as calculating the fibonnaci sequence, feel free to mess around!
+
+
 fun fib(n) {
   if (n < 2) {
     return n;
