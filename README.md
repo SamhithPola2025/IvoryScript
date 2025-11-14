@@ -28,6 +28,18 @@ java -cp out com.mainsrc.ivoryscript.IvoryScript yourfile.ivory
 java -cp out com.mainsrc.ivoryscript.IvoryScript
 ```
 
+## Recommended method to start the program:
+
+4. Run the JAR file (or go to releases):
+- To execute a script:
+```bash
+java -jar releases/IvoryScript.jar yourfile.ivory
+```
+- To start the REPL:
+```bash
+java -jar releases/IvoryScript.jar
+```
+
 ## Documentation
 
 Check out the [docs](docs/) folder for:
@@ -59,14 +71,6 @@ This interpreter follows the structure and approach from [Crafting Interpreters]
 
 I'm still learning programming and language implementation, so this isn't the most complex or optimized interpreter out there. But it works, and building it has been a great learning experience. The code is straightforward and readable, which makes it easier to understand and modify if you're also learning.
 
-## AI Usage
-
-I used AI assistance (specifically Cursor's AI features) during the development of this project. AI helped with:
-- Debugging when I got stuck on errors
-- Implementing new features like arrays
-- Understanding complex concepts from Crafting Interpreters (there do happen to be a lot of them)
-
-The core structure and initial implementation came from following the Crafting Interpreters tutorial, but AI was useful for extending beyond what the book covered and fixing bugs. I tried to understand everything that was added, and the code reflects my learning process. If you're also learning, this project might be helpful to see how someone else (with AI assistance) built an interpreter.
 
 ## License
 
