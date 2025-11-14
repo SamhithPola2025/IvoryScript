@@ -71,6 +71,9 @@ This interpreter follows the structure and approach from [Crafting Interpreters]
 
 I'm still learning programming and language implementation, so this isn't the most complex or optimized interpreter out there. But it works, and building it has been a great learning experience. The code is straightforward and readable, which makes it easier to understand and modify if you're also learning.
 
+## Screenshots:
+<img width="573" height="189" alt="image" src="https://github.com/user-attachments/assets/1fae932b-499c-4bdd-9677-920330ab0abc" />
+<img width="579" height="337" alt="image" src="https://github.com/user-attachments/assets/b00177ad-cbfd-4b7f-8f22-24d9f41ce7e8" />
 
 ## License
 
